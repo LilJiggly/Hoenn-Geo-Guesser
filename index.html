@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hoenn Geo Guesser</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+
+  <body>
+    <header>
+      <h1>Hoenn Geo Guesser</h1>
+      <div id="status">
+        <span>Round <b id="round">1</b>/<span id="rounds">5</span></span>
+        <span>Score <b id="score">0</b></span>
+      </div>
+    </header>
+
+    <main id="ds">
+      <div id="shot" class="screen" aria-label="Screenshot of a location in Hoenn"></div>
+      
+      <div id="mini" class="screen">
+        <img id="mini-img" src="./images/hoennMinimap.png" alt="Hoenn minimap" draggable="false" />
+      </div>
+
+      <div id="hinge">
+        <p id="hint">Click the minimap to place your guess.</p>
+        <p id="result"></p>
+        <button id="guess-btn" disabled>Guess</button>
+      </div>
+    </main>
+
+    <div id="final" hidden>
+      <div>
+        <h2>Game over</h2>
+        <p>Total score: <b id="final-score"></b> / <span id="final-max"></span></p>
+        <button id="again-btn">Play again</button>
+      </div>
+    </div>
+
+    <script src="./js/scripts.js"></script>
+  </body>
+</html>

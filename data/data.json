@@ -1,0 +1,170 @@
+{
+  "bigMapSize": [
+    13024,
+    6864
+  ],
+  "displaySize": [
+    2000,
+    1054
+  ],
+  "miniSize": [
+    240,
+    160
+  ],
+  "anchors": [
+    {
+      "name": "Rustboro City",
+      "big": [
+        70,
+        430
+      ],
+      "mini": [
+        11,
+        64
+      ]
+    },
+    {
+      "name": "Petalburg City",
+      "big": [
+        168,
+        655
+      ],
+      "mini": [
+        19,
+        90
+      ]
+    },
+    {
+      "name": "Dewford Town",
+      "big": [
+        172,
+        965
+      ],
+      "mini": [
+        27,
+        131
+      ]
+    },
+    {
+      "name": "Verdanturf Town",
+      "big": [
+        320,
+        412
+      ],
+      "mini": [
+        43,
+        65
+      ]
+    },
+    {
+      "name": "Mauville City",
+      "big": [
+        565,
+        408
+      ],
+      "mini": [
+        80,
+        65
+      ]
+    },
+    {
+      "name": "Slateport City",
+      "big": [
+        555,
+        770
+      ],
+      "mini": [
+        76,
+        103
+      ]
+    },
+    {
+      "name": "Fallarbor Town",
+      "big": [
+        240,
+        67
+      ],
+      "mini": [
+        35,
+        20
+      ]
+    },
+    {
+      "name": "Lavaridge Town",
+      "big": [
+        385,
+        215
+      ],
+      "mini": [
+        52,
+        42
+      ]
+    },
+    {
+      "name": "Fortree City",
+      "big": [
+        850,
+        62
+      ],
+      "mini": [
+        107,
+        19
+      ]
+    },
+    {
+      "name": "Lilycove City",
+      "big": [
+        1260,
+        255
+      ],
+      "mini": [
+        160,
+        43
+      ]
+    },
+    {
+      "name": "Mossdeep City",
+      "big": [
+        1700,
+        345
+      ],
+      "mini": [
+        207,
+        59
+      ]
+    },
+    {
+      "name": "Sootopolis City",
+      "big": [
+        1500,
+        510
+      ],
+      "mini": [
+        178,
+        75
+      ]
+    },
+    {
+      "name": "Ever Grande City",
+      "big": [
+        1955,
+        611
+      ],
+      "mini": [
+        227,
+        88
+      ]
+    },
+    {
+      "name": "Pacifidlog Town",
+      "big": [
+        1215,
+        740
+      ],
+      "mini": [
+        147,
+        98
+      ]
+    }
+  ]
+}

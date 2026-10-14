@@ -1,0 +1,208 @@
+* {
+  padding: 0em;
+  margin: 0em;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #14181f;
+  --panel: #445679;
+  --text: #f2f4f8;
+  --accent: #f5c542;
+  --guess: #ff4d4d;
+  --answer: #3ddc84;
+}
+
+body {
+  margin: 0em;
+  font-family: "Sofia Pro", system-ui, sans-serif;
+  background: var(--bg);
+  /* color: var(--text); */
+  /* min-height: 100vh; */
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1.5rem;
+  /* max-width: 636px; */
+  /* margin: 0 auto 1rem; */
+  --w: min(96vw, calc((100vh - 190px) * 0.75));
+  width: var(--w);
+  margin: 1rem auto;
+  background: #cfd3d9;
+  border-radius: 18px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+header h1 {
+  font-size: 1.3rem;
+}
+
+#status {
+  display: flex;
+  gap: 1.5rem;
+}
+
+/* Nintendo DS layout: two 3:2 screens stacked, joined by a hinge bar */
+#ds {
+  /* both screens must fit the window height: 2 screens + hinge + header */
+  --w: min(96vw, calc((100vh - 190px) * 0.75));
+  width: var(--w);
+  margin: 0 auto 1rem;
+  padding: 10px;
+  background: #cfd3d9;
+  border-radius: 18px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+.screen {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  background: #000;
+  border: 4px solid #222;
+  border-radius: 4px;
+}
+
+#shot {
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+#shot.dragging {
+  cursor: grabbing;
+}
+
+#hinge {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 56px;
+  padding: 6px 4px;
+  color: #222;
+  width: 100%;
+  border-radius: 4px;
+}
+
+#hinge p {
+  flex: 1;
+}
+
+#hinge #hint:empty {
+  display: none;
+}
+
+#hinge #result:empty {
+  display: none;
+}
+
+#hinge #result {
+  min-height: 0;
+  margin: 0;
+}
+
+#hinge button {
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0;
+  padding: 0.6rem 1.4rem;
+}
+
+#mini {
+  margin-top: 1rem;
+  position: relative;
+  cursor: crosshair;
+  user-select: none;
+}
+
+#mini-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+}
+
+#mini svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.pin {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  pointer-events: none;
+}
+
+.pin.guess {
+  background: var(--guess);
+}
+
+.pin.answer {
+  background: var(--answer);
+}
+
+.pin.debug {
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-width: 1px;
+  background: var(--accent);
+}
+
+button {
+  margin-top: 0.8rem;
+  width: 100%;
+  padding: 0.7rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #111;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#result {
+  margin-top: 0.6rem;
+  min-height: 2.6em;
+}
+
+#final {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+#final[hidden] {
+  display: none;
+}
+
+#final > div {
+  background: var(--panel);
+  padding: 2rem 3rem;
+  border-radius: 10px;
+}
+
+#final h2 {
+  margin-bottom: 1rem;
+}
