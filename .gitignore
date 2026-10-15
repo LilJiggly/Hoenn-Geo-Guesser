@@ -1,1 +1,4 @@
 .DS_Store
+tools/label/
+tools/*_mask.png
+tools/reachable_preview.png

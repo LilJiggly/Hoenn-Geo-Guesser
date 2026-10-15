@@ -10,20 +10,29 @@ const MAX_PAN_TILES = 8; // drag limit baked into the chunks (PAN in tools/slice
 // how far the player may drag the screenshot, in game tiles (16 px each); ?pan=N overrides, 0 = no dragging
 const PAN_TILES = Math.min(MAX_PAN_TILES, Number(new URLSearchParams(location.search).get("pan") ?? 4));
 const TILE = 16;
-const CHUNK = 1024; // map chunk size in images/map/ (tools/slice_map.py). The full map image is too big for iOS Safari
+const CHUNK = 1024; // map chunk size in images/map/ and images/fullmap/ (tools/slice_*.py). The full map image is too big for iOS Safari
 const ZONE = 512; // native px; spots are grouped into zones this big for even coverage
 const MIN_SEPARATION = 25; // minimap px between rounds in one game, so shots differ
-const DEBUG = new URLSearchParams(location.search).has("debug");
+const PARAMS = new URLSearchParams(location.search);
+const DEBUG = PARAMS.has("debug");
+// test mode (?test): adds interiors from images/full.png (caves, gyms, hideouts, ...). Each interior is
+// drawn from its own images/blocks/L<n>_<k>.png so a screenshot never shows a second location
+const TEST = PARAMS.has("test");
+let testLocations = []; // test mode: interior locations (name, entrance, image pieces) from data/test_spots.json
 
 // ===============================
 // STATE
 // ===============================
 let data;
 let toMini; // function: big-map native px -> minimap px
-let spots = []; // [bigX, bigY] native px centres inside the reachable area (data/spots.json)
+// every spot: [viewX, viewY, truthX, truthY, group, name, direct, unit]
+//  view = centre of the screenshot (hoenn.png px, or full.png px for an interior); truth = point on
+//  hoenn.png (native px) the answer is checked against, or minimap px when direct = 1 (hand-labelled);
+//  group = what the picker balances over; name = shown after guessing; unit = interior location or -1
+let spots = [];
 let round = 0;
 let total = 0;
-let current = null; // { name, bigX, bigY, mini: [x, y] }
+let current = null; // { cx, cy, name, mini: [x, y] }
 let guess = null; // [x, y] in minimap px
 let answered = false;
 let pan = { x: 0, y: 0 }; // drag offset of the screenshot, native px
@@ -96,11 +105,34 @@ function buildMapper(points) {
 // ===============================
 // LOAD DATA
 // ===============================
-Promise.all([fetch("data/data.json"), fetch("data/spots.json")])
+// test mode is not advertised: the link only shows once ?test is in the URL (so players can switch back)
+if (TEST) {
+  const other = new URLSearchParams(location.search);
+  other.delete("test");
+  const link = $("mode-link");
+  link.textContent = "Test mode (full map) · switch to normal";
+  link.href = "?" + other.toString();
+  link.hidden = false;
+}
+
+const zoneKey = (x, y) => `${Math.floor(x / ZONE)},${Math.floor(y / ZONE)}`;
+
+Promise.all([fetch("data/data.json"), fetch(TEST ? "data/test_spots.json" : "data/spots.json")])
   .then(([a, b]) => Promise.all([a.json(), b.json()]))
   .then(([d, s]) => {
     data = d;
-    spots = s;
+    if (TEST) {
+      testLocations = s.locations;
+      spots = [
+        ...s.spots.map(([x, y, li]) => {
+          const l = s.locations[li];
+          return [x, y, ...(l.mini || l.host), `L${li}`, l.name, l.mini ? 1 : 0, li];
+        }),
+        ...s.overworld.map(([x, y]) => [x, y, x, y, zoneKey(x, y), "", 0, -1]),
+      ];
+    } else {
+      spots = s.map(([x, y]) => [x, y, x, y, zoneKey(x, y), "", 0, -1]);
+    }
     const k = data.bigMapSize[0] / data.displaySize[0]; // display coords -> native px
     toMini = buildMapper(
       data.anchors.map((a) => ({ x: a.big[0] * k, y: a.big[1] * k, u: a.mini[0], v: a.mini[1] }))
@@ -133,7 +165,7 @@ function pickSpots() {
   if (!zones) {
     zones = new Map();
     for (const sp of spots) {
-      const key = `${Math.floor(sp[0] / ZONE)},${Math.floor(sp[1] / ZONE)}`;
+      const key = sp[4];
       if (!zones.has(key)) zones.set(key, []);
       zones.get(key).push(sp);
     }
@@ -148,11 +180,11 @@ function pickSpots() {
   while (picked.length < ROUNDS && tries++ < 5000) {
     const key = fresh[Math.floor(Math.random() * fresh.length)];
     const list = zones.get(key);
-    const [x, y] = list[Math.floor(Math.random() * list.length)];
-    const mini = toMini(x, y);
+    const [x, y, tx, ty, , name, direct, unit] = list[Math.floor(Math.random() * list.length)];
+    const mini = direct ? [tx, ty] : toMini(tx, ty);
     const apart = picked.every((p) => Math.hypot(p.mini[0] - mini[0], p.mini[1] - mini[1]) >= MIN_SEPARATION);
     if (apart) {
-      picked.push({ cx: x, cy: y, mini });
+      picked.push({ cx: x, cy: y, mini, name, unit });
       seenZones.add(key);
     }
   }
@@ -178,23 +210,32 @@ function nextRound() {
   showDragHint();
 }
 
-// the screenshot is a window onto the map, built from the small chunks that overlap the view
+// the screenshot is a window onto the map, built from the small images that overlap the view:
+// map chunks on the overworld, or the blocks of one interior location (nothing else of full.png)
 function loadShotChunks() {
   const el = $("shot");
   el.replaceChildren();
   const lim = PAN_TILES * TILE;
-  const x0 = Math.floor((current.cx - VIEW_W / 2 - lim) / CHUNK);
-  const x1 = Math.floor((current.cx + VIEW_W / 2 + lim) / CHUNK);
-  const y0 = Math.floor((current.cy - VIEW_H / 2 - lim) / CHUNK);
-  const y1 = Math.floor((current.cy + VIEW_H / 2 + lim) / CHUNK);
-  for (let cx = x0; cx <= x1; cx++) {
-    for (let cy = y0; cy <= y1; cy++) {
-      const img = document.createElement("img");
-      img.src = `./images/map/${cx}_${cy}.png`;
-      img.draggable = false;
-      img.dataset.cx = cx;
-      img.dataset.cy = cy;
-      el.appendChild(img);
+  const vx0 = current.cx - VIEW_W / 2 - lim;
+  const vx1 = current.cx + VIEW_W / 2 + lim;
+  const vy0 = current.cy - VIEW_H / 2 - lim;
+  const vy1 = current.cy + VIEW_H / 2 + lim;
+  const add = (src, props) => {
+    const img = document.createElement("img");
+    img.src = src;
+    img.draggable = false;
+    Object.assign(img.dataset, props);
+    el.appendChild(img);
+  };
+  if (current.unit >= 0) {
+    testLocations[current.unit].pieces.forEach(([x, y, w, h], k) => {
+      if (x < vx1 && x + w > vx0 && y < vy1 && y + h > vy0) add(`./images/blocks/L${current.unit}_${k}.png`, { x, y, w, h });
+    });
+    return;
+  }
+  for (let cx = Math.floor(vx0 / CHUNK); cx <= Math.floor(vx1 / CHUNK); cx++) {
+    for (let cy = Math.floor(vy0 / CHUNK); cy <= Math.floor(vy1 / CHUNK); cy++) {
+      add(`./images/map/${cx}_${cy}.png`, { x: cx * CHUNK, y: cy * CHUNK, w: CHUNK, h: CHUNK });
     }
   }
 }
@@ -219,11 +260,12 @@ function showShot() {
   const left = current.cx + pan.x - VIEW_W / 2;
   const top = current.cy + pan.y - VIEW_H / 2;
   el.querySelectorAll("img").forEach((img) => {
+    const { x, y, w, h } = img.dataset;
     // +1px size so neighbouring chunks overlap instead of leaving hairline gaps
-    img.style.left = `${Math.floor((img.dataset.cx * CHUNK - left) * scale)}px`;
-    img.style.top = `${Math.floor((img.dataset.cy * CHUNK - top) * scale)}px`;
-    img.style.width = `${Math.ceil(CHUNK * scale) + 1}px`;
-    img.style.height = `${Math.ceil(CHUNK * scale) + 1}px`;
+    img.style.left = `${Math.floor((x - left) * scale)}px`;
+    img.style.top = `${Math.floor((y - top) * scale)}px`;
+    img.style.width = `${Math.ceil(w * scale) + 1}px`;
+    img.style.height = `${Math.ceil(h * scale) + 1}px`;
   });
 }
 
@@ -324,10 +366,16 @@ $("guess-btn").addEventListener("click", () => {
 
   addPin("answer", current.mini);
   drawLine(guess, current.mini);
-  $("result").innerHTML = `<b>${points}</b> points: ${Math.round(dist)} minimap px away.`;
+  $("result").innerHTML = `<b>${points}</b> points: ${Math.round(dist)} minimap px away.${TEST ? `<br>${testNote()}` : ""}`;
   $("hint").textContent = "";
   $("guess-btn").textContent = round >= ROUNDS ? "See final score" : "Next round";
 });
+
+// test mode: say where the shot was taken; interiors are checked against their entrance on the overworld
+function testNote() {
+  if (current.name) return `Inside ${current.name} (answer = its entrance).`;
+  return current.unit >= 0 ? "An interior (answer = its entrance)." : "";
+}
 
 function drawLine(a, b) {
   const [w, h] = data.miniSize;
@@ -354,7 +402,7 @@ function drawDebug() {
     p.title = s.name;
   });
   // every 40th candidate spot, to see how the reachable area lands on the minimap
-  spots.forEach(([x, y], i) => {
-    if (i % 40 === 0) addPin("debug", toMini(x, y)).style.background = "#4da6ff";
+  spots.forEach(([, , tx, ty, , , direct], i) => {
+    if (i % 40 === 0) addPin("debug", direct ? [tx, ty] : toMini(tx, ty)).style.background = "#4da6ff";
   });
 }

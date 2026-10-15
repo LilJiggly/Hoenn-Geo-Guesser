@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Label interiors | Hoenn Geo Guesser</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: system-ui, sans-serif; background: #14181f; color: #f2f4f8; padding: 12px; }
+      h1 { font-size: 1rem; margin-bottom: 8px; }
+      #layout { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+      .col { flex: 1 1 420px; max-width: 640px; }
+      .screen { position: relative; width: 100%; aspect-ratio: 3 / 2; background: #000; border: 4px solid #2b3240; border-radius: 4px; overflow: hidden; }
+      #block { position: absolute; inset: 0; margin: auto; max-width: 100%; max-height: 100%; }
+      #mini { cursor: crosshair; user-select: none; }
+      #mini img { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+      .pin { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; border: 3px solid #fff; pointer-events: none; }
+      .pin.guess { background: #ff4d4d; }
+      .pin.done { background: #3ddc84; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-width: 1px; }
+      #overview { position: relative; margin-top: 10px; }
+      #overview img { width: 100%; display: block; image-rendering: pixelated; }
+      #here { position: absolute; border: 2px solid #ff4d4d; box-shadow: 0 0 0 2px rgba(255,255,255,.7); pointer-events: none; }
+      .done-box { position: absolute; background: rgba(61, 220, 132, .55); pointer-events: none; }
+      .row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+      button { padding: 8px 14px; font-size: .9rem; font-weight: 700; border: 0; border-radius: 6px; background: #f5c542; color: #111; cursor: pointer; }
+      button.alt { background: #39414f; color: #f2f4f8; }
+      button:disabled { opacity: .4; cursor: not-allowed; }
+      #info { margin-top: 8px; font-size: .9rem; opacity: .85; line-height: 1.4; }
+      kbd { background: #39414f; border-radius: 4px; padding: 1px 6px; }
+    </style>
+  </head>
+  <body>
+    <h1>Label interiors <span id="progress"></span></h1>
+    <div id="layout">
+      <div class="col">
+        <div class="screen"><img id="block" alt="Interior block to label" /></div>
+        <div id="overview"><img src="./label/overview.png" alt="Where this block sits in full.png" /><div id="here"></div></div>
+        <p id="info"></p>
+      </div>
+      <div class="col">
+        <div id="mini" class="screen"><img src="../images/hoennMinimap.png" alt="Hoenn minimap" draggable="false" /></div>
+        <div class="row">
+          <button id="save" disabled>Save &amp; next <kbd>Enter</kbd></button>
+          <button id="same" class="alt">Same as previous</button>
+          <button id="skip" class="alt">Skip <kbd>S</kbd></button>
+          <button id="back" class="alt">Back <kbd>B</kbd></button>
+        </div>
+        <div class="row">
+          <button id="download" class="alt">Download labels (JSON)</button>
+          <button id="copy" class="alt">Copy JSON</button>
+        </div>
+        <p id="info2" style="margin-top:8px;font-size:.85rem;opacity:.8">
+          Click the minimap where this interior's entrance is, then Save. The red box in the overview shows where the block
+          lives in full.png; green boxes are blocks you already labelled. Labels are kept in this browser; download them
+          into <code>data/test_manual.json</code> and rerun <code>build_test_spots.py</code> + <code>slice_blocks.py</code>.
+        </p>
+      </div>
+    </div>
+    <script src="./label.js"></script>
+  </body>
+</html>
