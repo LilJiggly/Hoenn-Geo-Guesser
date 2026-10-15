@@ -10,6 +10,7 @@ const MAX_PAN_TILES = 8; // limit baked into data/spots.json (tools/build_spots.
 // how far the player may drag the screenshot, in game tiles (16 px each); ?pan=N overrides, 0 = no dragging
 const PAN_TILES = Math.min(MAX_PAN_TILES, Number(new URLSearchParams(location.search).get("pan") ?? 4));
 const TILE = 16;
+const CHUNK = 1024; // map chunk size in images/map/ (tools/slice_map.py). The full map image is too big for iOS Safari
 const MIN_SEPARATION = 25; // minimap px between rounds in one game, so shots differ
 const DEBUG = new URLSearchParams(location.search).has("debug");
 
@@ -145,19 +146,43 @@ function nextRound() {
 
   current = deck[round - 1];
   pan = { x: 0, y: 0 };
+  loadShotChunks();
   showShot();
 }
 
-// the screenshot is a CSS-positioned window onto the huge map image
+// the screenshot is a window onto the map, built from the small chunks that overlap the view
+function loadShotChunks() {
+  const el = $("shot");
+  el.replaceChildren();
+  const lim = PAN_TILES * TILE;
+  const x0 = Math.floor((current.cx - VIEW_W / 2 - lim) / CHUNK);
+  const x1 = Math.floor((current.cx + VIEW_W / 2 + lim) / CHUNK);
+  const y0 = Math.floor((current.cy - VIEW_H / 2 - lim) / CHUNK);
+  const y1 = Math.floor((current.cy + VIEW_H / 2 + lim) / CHUNK);
+  for (let cx = x0; cx <= x1; cx++) {
+    for (let cy = y0; cy <= y1; cy++) {
+      const img = document.createElement("img");
+      img.src = `./images/map/${cx}_${cy}.png`;
+      img.draggable = false;
+      img.dataset.cx = cx;
+      img.dataset.cy = cy;
+      el.appendChild(img);
+    }
+  }
+}
+
 function showShot() {
   const el = $("shot");
   const scale = el.clientWidth / VIEW_W;
-  const [w, h] = data.bigMapSize;
   const left = current.cx + pan.x - VIEW_W / 2;
   const top = current.cy + pan.y - VIEW_H / 2;
-  el.style.backgroundImage = "url(./images/hoenn.png)";
-  el.style.backgroundSize = `${w * scale}px ${h * scale}px`;
-  el.style.backgroundPosition = `${-left * scale}px ${-top * scale}px`;
+  el.querySelectorAll("img").forEach((img) => {
+    // +1px size so neighbouring chunks overlap instead of leaving hairline gaps
+    img.style.left = `${Math.floor((img.dataset.cx * CHUNK - left) * scale)}px`;
+    img.style.top = `${Math.floor((img.dataset.cy * CHUNK - top) * scale)}px`;
+    img.style.width = `${Math.ceil(CHUNK * scale) + 1}px`;
+    img.style.height = `${Math.ceil(CHUNK * scale) + 1}px`;
+  });
 }
 
 window.addEventListener("resize", () => {

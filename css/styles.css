@@ -57,6 +57,13 @@ header h1 {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
 }
 
+/* iOS Safari: 100vh includes the collapsing address bar, dvh does not */
+@supports (height: 100dvh) {
+  #ds {
+    --w: min(96vw, calc((100dvh - 190px) * 0.75));
+  }
+}
+
 .screen {
   width: 100%;
   aspect-ratio: 3 / 2;
@@ -66,11 +73,18 @@ header h1 {
 }
 
 #shot {
-  background-repeat: no-repeat;
-  image-rendering: pixelated;
+  position: relative;
+  overflow: hidden;
   cursor: grab;
   touch-action: none;
   user-select: none;
+}
+
+#shot img {
+  position: absolute;
+  max-width: none;
+  image-rendering: pixelated;
+  pointer-events: none;
 }
 
 #shot.dragging {
