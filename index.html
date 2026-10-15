@@ -8,15 +8,15 @@
   </head>
 
   <body>
-    <header>
+    <!-- <header> -->
+    <!-- </header> -->
+    
+    <main id="ds">
       <h1>Hoenn Geo Guesser</h1>
       <div id="status">
         <span>Round <b id="round">1</b>/<span id="rounds">5</span></span>
         <span>Score <b id="score">0</b></span>
       </div>
-    </header>
-
-    <main id="ds">
       <div id="shot" class="screen" aria-label="Screenshot of a location in Hoenn"></div>
       
       <div id="mini" class="screen">
@@ -29,6 +29,20 @@
         <button id="guess-btn" disabled>Guess</button>
       </div>
     </main>
+
+    <footer id="site-footer">
+      <p>
+        Hoenn Geo Guesser is an unofficial, non-commercial fan project. It is not affiliated with, endorsed by or
+        sponsored by Nintendo, Game Freak, Creatures Inc. or The Pokémon Company.
+      </p>
+      <p>
+        Pokémon and Pokémon Emerald Version, including their characters, maps and artwork, are trademarks and
+        copyrighted works of their respective owners. Map imagery is shown for fan, educational use only and was
+        sourced from <a href="https://pkmnmap.com/Maps/Emerald/" target="_blank" rel="noopener">pkmnmap.com</a>.
+        All rights remain with the original owners; contact the project owner to request removal.
+      </p>
+      <p>Game code &copy; 2026 LilJiggly &middot; <span id="version">v0.1.0</span></p>
+    </footer>
 
     <div id="final" hidden>
       <div>

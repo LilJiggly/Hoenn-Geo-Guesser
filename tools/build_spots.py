@@ -1,5 +1,8 @@
-"""Builds data/spots.json: candidate screenshot centres that lie fully inside the
-reachable area (the imgi_*.webp tiles, transparent = unreachable) and are not mostly water.
+"""Builds data/spots.json (candidate screenshot centres) and tools/reachable_mask.png.
+
+A spot's view must be mostly inside the reachable area (the imgi_*.webp tiles, transparent =
+unreachable) and not mostly water. Unreachable pixels are blacked out by tools/slice_map.py, so
+dragging never reveals them and spots may sit right at the edge of a route.
 
 Run from the project root:  python3 tools/build_spots.py
 Tile positions (1/8-scale map, 1628 px wide) come from tools/tile_positions.json.
@@ -11,17 +14,15 @@ SCALE = 8                 # tile map is 1/8 of images/hoenn.png
 W, H = 1628, 858
 VIEW_W, VIEW_H = 384 // SCALE, 256 // SCALE   # screenshot window in tile-map px
 STEP = 4
-MIN_REACHABLE = 1.0       # whole window must be reachable
-MAX_PAN_TILES = 8         # extra reachable margin around the window so players can drag the view
-                          # (keep in sync with MAX_PAN_TILES in js/scripts.js; 1 tile = 2 px here)
-M = MAX_PAN_TILES * 2
-MAX_WATER = 0.5          # skip mostly-water shots
+MIN_REACHABLE = 0.9       # share of the view that must be reachable (the rest shows as black)
+MAX_WATER = 0.7           # skip shots that are mostly water
 
 pos = json.load(open("tools/tile_positions.json"))
 canvas = Image.new("RGBA", (W, H), (0, 0, 0, 0))
 for f, (score, (ox, oy, c, r)) in pos.items():
     canvas.alpha_composite(Image.open(f"images/{f}").convert("RGBA"), (ox, oy))
 canvas.save("tools/reachable_preview.png")
+canvas.getchannel("A").point(lambda a: 255 if a == 255 else 0).save("tools/reachable_mask.png")
 
 px = canvas.load()
 def is_water(r, g, b): return b > 150 and r < 130 and g < 150
@@ -43,10 +44,9 @@ def box(I, x0, y0, x1, y1):
 
 area = VIEW_W * VIEW_H
 spots = []
-big_area = (VIEW_W + 2 * M) * (VIEW_H + 2 * M)
-for y in range(M, H - VIEW_H - M, STEP):
-    for x in range(M, W - VIEW_W - M, STEP):
-        if box(reach, x - M, y - M, x + VIEW_W + M, y + VIEW_H + M) / big_area < MIN_REACHABLE: continue
+for y in range(0, H - VIEW_H, STEP):
+    for x in range(0, W - VIEW_W, STEP):
+        if box(reach, x, y, x + VIEW_W, y + VIEW_H) / area < MIN_REACHABLE: continue
         if 1 - box(land, x, y, x + VIEW_W, y + VIEW_H) / area > MAX_WATER: continue
         spots.append([(x + VIEW_W // 2) * SCALE, (y + VIEW_H // 2) * SCALE])  # native px centre
 

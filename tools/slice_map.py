@@ -1,5 +1,7 @@
 """Slices images/hoenn.png (13024x6864, too big for iOS Safari to decode) into 1024px chunks
 in images/map/<col>_<row>.png. Only chunks any spot can show (view + pan margin) are written.
+Pixels outside the reachable area (tools/reachable_mask.png, 1/8 scale) are made transparent, so
+they show as black in the game. Run tools/build_spots.py first.
 
 Run from the project root:  python3 tools/slice_map.py
 """
@@ -19,7 +21,11 @@ for x, y in spots:
             need.add((cx, cy))
 
 big = Image.open("images/hoenn.png").convert("RGBA")
+mask = Image.open("tools/reachable_mask.png").resize(big.size, Image.NEAREST)  # 1/8 scale -> native
+big.putalpha(mask)
 os.makedirs("images/map", exist_ok=True)
+for f in os.listdir("images/map"):
+    os.remove(os.path.join("images/map", f))  # drop chunks no spot needs any more
 for cx, cy in sorted(need):
     tile = big.crop((cx * CHUNK, cy * CHUNK, (cx + 1) * CHUNK, (cy + 1) * CHUNK))
     tile.save(f"images/map/{cx}_{cy}.png", optimize=True)

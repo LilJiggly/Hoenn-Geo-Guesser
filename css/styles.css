@@ -6,7 +6,7 @@
 
 :root {
   --bg: #14181f;
-  --panel: #445679;
+  --panel: #748bba;
   --text: #f2f4f8;
   --accent: #f5c542;
   --guess: #ff4d4d;
@@ -15,34 +15,24 @@
 
 body {
   margin: 0em;
+  overscroll-behavior: none; /* no rubber-banding while dragging */
   font-family: "Sofia Pro", system-ui, sans-serif;
   background: var(--bg);
   /* color: var(--text); */
   /* min-height: 100vh; */
 }
 
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.8rem 1.5rem;
-  /* max-width: 636px; */
-  /* margin: 0 auto 1rem; */
-  --w: min(96vw, calc((100vh - 190px) * 0.75));
-  width: var(--w);
-  margin: 1rem auto;
-  background: #cfd3d9;
-  border-radius: 18px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-}
-
-header h1 {
+h1 {
   font-size: 1.3rem;
+  text-align: center;
+  width: 100%;
 }
 
 #status {
+  margin-top: .5rem;
   display: flex;
   gap: 1.5rem;
+  justify-content: center;
 }
 
 /* Nintendo DS layout: two 3:2 screens stacked, joined by a hinge bar */
@@ -50,17 +40,20 @@ header h1 {
   /* both screens must fit the window height: 2 screens + hinge + header */
   --w: min(96vw, calc((100vh - 190px) * 0.75));
   width: var(--w);
-  margin: 0 auto 1rem;
+  /* margin: 0 auto 1rem; */
+  margin: 1rem auto;
   padding: 10px;
   background: #cfd3d9;
   border-radius: 18px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
 }
 
-/* iOS Safari: 100vh includes the collapsing address bar, dvh does not */
-@supports (height: 100dvh) {
+/* iOS Safari: 100vh is the tall viewport (toolbars hidden), so the layout would be too big at first.
+   dvh follows the toolbars live, which resizes the screens while the player drags.
+   svh is the small viewport (toolbars shown) and never changes, so the size stays fixed. */
+@supports (height: 100svh) {
   #ds {
-    --w: min(96vw, calc((100dvh - 190px) * 0.75));
+    --w: min(96vw, calc((100svh - 190px) * 0.75));
   }
 }
 
@@ -73,6 +66,7 @@ header h1 {
 }
 
 #shot {
+  margin-top: 1rem;
   position: relative;
   overflow: hidden;
   cursor: grab;
@@ -85,6 +79,26 @@ header h1 {
   max-width: none;
   image-rendering: pixelated;
   pointer-events: none;
+}
+
+#shot .drag-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.6s;
+  pointer-events: none;
+}
+
+#shot .drag-hint.visible {
+  opacity: 1;
 }
 
 #shot.dragging {
@@ -175,7 +189,7 @@ header h1 {
 }
 
 button {
-  margin-top: 0.8rem;
+  margin-top: 1rem;
   width: 100%;
   padding: 0.7rem;
   font-size: 1rem;
@@ -218,5 +232,24 @@ button:disabled {
 }
 
 #final h2 {
-  margin-bottom: 1rem;
+  margin-bottom: .5rem;
+}
+
+#site-footer {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 1rem 1.5rem;
+  text-align: center;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--text);
+  opacity: 0.55;
+}
+
+#site-footer p + p {
+  margin-top: 0.4rem;
+}
+
+#site-footer a {
+  color: inherit;
 }
